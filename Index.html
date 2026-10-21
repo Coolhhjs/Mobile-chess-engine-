@@ -1,0 +1,130 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta charset="UTF-8">
+<title>Chess Study Tool</title>
+<style>
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  padding: 12px;
+  background: #15171b;
+  color: white;
+  font-family: Arial, sans-serif;
+}
+main {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  max-width: 1000px;
+  margin: auto;
+}
+#board {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  width: min(68vw, 560px);
+  aspect-ratio: 1;
+  flex-shrink: 0;
+}
+.square {
+  display: grid;
+  place-items: center;
+  font-size: clamp(22px, 6vw, 48px);
+  cursor: pointer;
+  user-select: none;
+}
+.light { background: #eee5d5; color: #222; }
+.dark { background: #779568; color: #222; }
+.selected { outline: 4px solid #f3d35c; outline-offset: -4px; }
+#panel { flex: 1; min-width: 130px; }
+button, select {
+  padding: 10px;
+  margin: 4px 0;
+  width: 100%;
+  border: 0;
+  border-radius: 7px;
+  font-size: 15px;
+}
+button { background: #e5c45c; color: #191919; }
+p { color: #c6c9d0; line-height: 1.4; }
+@media (orientation: portrait) {
+  main { flex-direction: column; }
+  #board { width: min(94vw, 560px); }
+  #panel { width: 100%; }
+}
+</style>
+</head>
+<body>
+<h2>Chess Study Tool</h2>
+<main>
+  <div id="board"></div>
+  <section id="panel">
+    <h3>Position setup</h3>
+    <label for="turn">Side to move</label>
+    <select id="turn">
+      <option value="w">White</option>
+      <option value="b">Black</option>
+    </select>
+    <button id="reset">Reset board</button>
+    <button id="clear">Clear board</button>
+    <p id="status">Tap a piece, then tap its destination to move it. This setup board does not enforce chess rules yet.</p>
+    <p>Engine analysis will be added after the board works.</p>
+  </section>
+</main>
+<script>
+const initial = [
+  "♜♞♝♛♚♝♞♜",
+  "♟♟♟♟♟♟♟♟",
+  "........",
+  "........",
+  "........",
+  "........",
+  "♙♙♙♙♙♙♙♙",
+  "♖♘♗♕♔♗♘♖"
+];
+let position = initial.map(row => [...row]);
+let selected = null;
+
+function draw() {
+  const board = document.getElementById("board");
+  board.innerHTML = "";
+  position.forEach((row, r) => row.forEach((piece, c) => {
+    const square = document.createElement("div");
+    square.className = "square " + ((r + c) % 2 ? "dark" : "light");
+    if (selected && selected[0] === r && selected[1] === c)
+      square.classList.add("selected");
+    square.textContent = piece === "." ? "" : piece;
+    square.onclick = () => tap(r, c);
+    board.appendChild(square);
+  }));
+}
+function tap(r, c) {
+  if (!selected) {
+    if (position[r][c] !== ".") selected = [r, c];
+  } else {
+    const [sr, sc] = selected;
+    if (sr === r && sc === c) selected = null;
+    else {
+      position[r][c] = position[sr][sc];
+      position[sr][sc] = ".";
+      selected = null;
+    }
+  }
+  draw();
+}
+document.getElementById("reset").onclick = () => {
+  position = initial.map(row => [...row]);
+  selected = null;
+  draw();
+};
+document.getElementById("clear").onclick = () => {
+  position = Array.from({length:8}, () => Array(8).fill("."));
+  selected = null;
+  draw();
+};
+draw();
+</script>
+</body>
+</html>
